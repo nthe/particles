@@ -1,29 +1,56 @@
 
 (function(global) {
 
+    "use strict";
+
     // values not accessible by developer from outside
     const author = 'Juraj';
 
 
+    /**
+     * @function Vector
+     * @description wrapper for function constructor (avoiding 'new' keyword)
+     * @constructs Vector
+     * @param {number} x x-coordinate
+     * @param {number} y y-coordinate
+     */
     const Vector = function(x, y) {
         return new Vector.init(x, y);
     };
 
+    
+    /**
+     * @description function constructor
+     * @constructs Vector
+     * @param {number} x x-coordinate
+     * @param {number} y y-coordinate
+     */
     Vector.init = function(x=1, y=1) {
         this.x = x;
         this.y = y;
     };
 
+
     Vector.prototype = {
 
-        // randomize itself
+        /**
+         * @method random
+         * @description scale vector to random size
+         * @param {CanvasRenderingContext2D} canvas canvas
+         * @return {Vector} self
+         */
         randomize: function(canvas) {
             this.x = Math.random() * (canvas ? canvas.width  / 10 : 1);
             this.y = Math.random() * (canvas ? canvas.height / 10 : 1);
             return this;
         },
 
-        // addition
+        /**
+         * @method add
+         * @description add two vectors
+         * @param {(Vector|number)} obj vector or scalar
+         * @return {Vector} self
+         */
         add: function(obj) {
             if (obj instanceof Vector) {
                 this.x += obj.x;
@@ -36,7 +63,12 @@
             return this;
         },
 
-        // difference
+        /**
+         * @method sub
+         * @description subtract two vectors
+         * @param {(Vector|number)} obj vector or scalar
+         * @return {Vector} self
+         */
         sub: function(obj) {
             if (obj instanceof Vector) {
                 this.x -= obj.x;
@@ -49,7 +81,12 @@
             return src;
         },
 
-        // multiplication
+        /**
+         * @method mult
+         * @description multiply two vectors
+         * @param {(Vector|number)} obj vector or scalar
+         * @return {Vector} self
+         */
         mult: function(obj) {
             if (obj instanceof Vector) {
                 this.x *= obj.x;
@@ -62,7 +99,12 @@
             return this;
         },
 
-        // division
+        /**
+         * @method div
+         * @description divide two vectors
+         * @param {(Vector|number)} obj vector or scalar
+         * @return {Vector} self
+         */
         div: function(obj) {
             if (obj instanceof Vector) {
                 this.x /= obj.x;
@@ -75,7 +117,12 @@
             return this;
         },
 
-        // thanks, Pythagoras!
+        /**
+         * @method distance
+         * @description calculate distance between two vectors (thanks, Pythagoras!)
+         * @param {Vector} vector target vector
+         * @return {number} distance
+         */
         distance: function(vector) {
             return Math.sqrt(
                 Math.pow(this.x - vector.x, 2) +
@@ -84,43 +131,83 @@
         }
     };
 
+
     Vector.init.prototype = Vector.prototype;
 
 
 
 
-
-    const Particle = function(context, position) {
-        return new Particle.init(context, position);
+    /**
+     * @function Particle
+     * @description wrapper for function constructor (avoiding 'new' keyword)
+     * @constructs Particle
+     * @param {Vector} position position on canvas
+     * @param {number} mass weight or size
+     */
+    const Particle = function(position, mass) {
+        return new Particle.init(position, mass);
     };
 
-    Particle.init = function(context, position, mass=1) {
-        this.context = context;
+
+    /**
+     * @description function constructor
+     * @constructs Particle
+     * @param {Vector} position position on canvas
+     * @param {number} mass weight or size
+     */
+    Particle.init = function(position, mass=1) {
+        // this.context = context;
         this.position = position || Vector().randomize();
-        this.direction = Vector().randomize(this.context.canvas);
+        this.direction = Vector().randomize(this.CONTEXT.canvas);
         this.mass = mass;
     };
 
+
     Particle.prototype = {
         
-        // default easing value
+        /**
+         * @property
+         * @description easing (attraction force)
+         * @default 0.35
+         */
         EASING: 0.35,
 
-        // target
+        /**
+         * @property
+         * @description destination positional vector
+         */
         TARGET: Vector(),
 
-        // do attract
+        /**
+         * @property
+         * @description apply attraction force
+         * @default true
+         */
         ATTRACT: true,
 
-        // randomize position
+        /**
+         * @property
+         * @description reference to context
+         */
+        CONTEXT: {},
+
+        /**
+         * @method randomize
+         * @description randomize own position on canvas
+         * @returns {Particle} self
+         */
         randomize: function() {
             this.position.randomize();
-            this.position.x *= this.context.canvas.width;
-            this.position.y *= this.context.canvas.height;
+            this.position.x *= this.CONTEXT.canvas.width;
+            this.position.y *= this.CONTEXT.canvas.height;
             return this;
         },
 
-        // calculate new position
+        /**
+         * @method update
+         * @description update particle (apply forces)
+         * @returns {Particle} self
+         */
         update: function() {
 
             // new vector is required
@@ -144,19 +231,29 @@
                 this.direction.add(distVector);
             }
             
-            this.mass = Math.max(1, Math.log(distance)/1.5);
+            this.mass = Math.max(1, Math.log(distance) / 1.5);
 
             if(distance > 0) {
                 this.position.add(distVector.add(this.direction).mult(this.EASING));
             }
+
+            // constraint position to canvas
+            if (this.position.x <= 1) this.position.x = 1;
+            if (this.position.x >= this.CONTEXT.canvas.width - 1) this.position.x = this.CONTEXT.canvas.width - 1;
+            if (this.position.y <= 1) this.position.y = 1;
+            if (this.position.y >= this.CONTEXT.canvas.height - 1) this.position.y = this.CONTEXT.canvas.height - 1;
+            
             return this;
         },
 
-        // render particle as circle, mass defined the size
+        /**
+         * @method render
+         * @description render particle as ellipse
+         */
         render: function() {
             // draw an 360 def arc, filled
-            this.context.beginPath();
-            this.context.arc(
+            this.CONTEXT.beginPath();
+            this.CONTEXT.arc(
                 this.position.x, 
                 this.position.y, 
                 this.mass, 
@@ -164,8 +261,8 @@
                 2 * Math.PI,
                 true
             );
-            this.context.fill();
-            this.context.stroke();
+            this.CONTEXT.fill();
+            this.CONTEXT.stroke();
         }
     };
 
@@ -177,29 +274,36 @@
 
 
 
-    // wrapper of function constructor
-    // helps with missing "new" keyword
+    /**
+     * @function ParticleSystem
+     * @description wrapper for function constructor (avoiding 'new' keyword)
+     * @constructs ParticleSystem
+     * @param {CanvasRenderingContext2D} context context
+     * @param {number} size size of system
+     */
     const ParticleSystem = function(context, size) {
         return new ParticleSystem.init(context, size);
     };
     
-    // function constructor
+
+    /**
+     * @description function constructor
+     * @constructs ParticleSystem
+     * @param {CanvasRenderingContext2D} context context
+     * @param {number} size size of system
+     * @param {number} ease initial easing value
+     */
     ParticleSystem.init = function(context, size=20, ease=0.35) {
 
         this.context = context;
-        this.size = size;
+        Particle.prototype.CONTEXT = this.context;
+
         this.handle = null;
         this.system = [];
+        this.size = size;
         
+        this.resize(size);
         this.setEasing(ease);
-
-        // create particle "cloud" or "system"
-        let sx = this.size; 
-        while(sx--) {
-            this.system.push(
-                Particle(this.context)
-            );
-        }
 
         // listen to mousemoves for specific canvas
         this.context.canvas.onmousedown = function(event) {
@@ -217,10 +321,14 @@
         };
     };
 
+
     // define exposed methods via prototype
     ParticleSystem.prototype = {
         
-        // update positions of particles and (re)render them
+        /**
+         * @method update
+         * @description update whole system (scene)
+         */
         update: function() {
             this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
@@ -230,19 +338,34 @@
             }
         },
 
-        // change context (canvas)
+        /**
+         * @method setContext
+         * @description change the context (targeting canvas)
+         * @param {CanvasRenderingContext2D} ctx new context
+         * @returns {ParticleSystem} self
+         */
         setContext: function(ctx) {
             this.context = ctx;
             return this;
         },
 
-        // change easing value
+        /**
+         * @method setEasing
+         * @description change easing value
+         * @param {number} value new easing value
+         * @returns {ParticleSystem} self
+         */
         setEasing: function(value) {
             Particle.prototype.EASING = value;
             return this;
         },
 
-        // resize cloud
+        /**
+         * @method resize
+         * @description change the size of system
+         * @param {number} size new size of system
+         * @return {ParticleSystem} self
+         */
         resize: function(size) {
             // to shrink it, override array length
             if (this.system.length > size) {
@@ -252,9 +375,7 @@
             else {
                 let toFill = size - this.system.length;
                 while(toFill--) {
-                    this.system.push(
-                        Particle(this.context)
-                    );
+                    this.system.push(Particle());
                 }
             }
             // adjust size property
@@ -262,7 +383,12 @@
             return this;
         },
 
-        // start the system
+        /**
+         * @method start
+         * @description start particle system (setup interval)
+         * @param {number} fps frames per second
+         * @returns {ParticleSystem} self
+         */
         start: function(fps) {
             const self = this;
             this.handle = setInterval(() => {
@@ -271,7 +397,10 @@
             return this;
         },
 
-        // stop the system
+        /**
+         * @method stop
+         * @description stop particle system (clear interval)
+         */
         stop: function() {
             if(!this.handle) {
                 return;
@@ -280,9 +409,9 @@
         }
     };
 
+
     // use prototype chain to expose methods
     ParticleSystem.init.prototype = ParticleSystem.prototype;
-
 
 
     // expose ParticleSystem to global object

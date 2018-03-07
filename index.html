@@ -12,6 +12,7 @@
         canvas {
             display: block;
             position: fixed;
+            cursor: pointer;
         }
     </style>
     <title>Particle System Demo</title>
@@ -29,6 +30,7 @@
         const ctx = c.getContext("2d");
         ctx.strokeStyle = "#000000";
         ctx.fillStyle = "#00ccff";
+
         const system = P$(ctx)
             .resize(size=1000)
             .setEasing(0.25)
