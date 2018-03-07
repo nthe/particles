@@ -19,8 +19,6 @@
 
 <body>
     <canvas id="canvas"></canvas>
-    <script src="ps.core.js"></script>
-    <script src="ps.particle.js"></script>
     <script src="ps.system.js"></script>
 
     <script>
@@ -29,8 +27,12 @@
         c.width = window.innerWidth;
         c.height = window.innerHeight;
         const ctx = c.getContext("2d");
-        const system = P$(ctx, size=2500);
-        system.setEasing(0.25).start(fps=30);
+        ctx.strokeStyle = "#000000";
+        ctx.fillStyle = "#00ccff";
+        const system = P$(ctx)
+            .resize(size=1000)
+            .setEasing(0.25)
+            .start(fps=30);
 
         // setTimeout(() => {
         //     system.stop();
