@@ -7,13 +7,14 @@
     <style>
         body {
             margin: 0;
+            font-family: monospace;
         }
-
         canvas {
             display: block;
+            position: fixed;
         }
     </style>
-    <title>Document</title>
+    <title>Particle System Demo</title>
 </head>
 
 <body>
@@ -26,9 +27,9 @@
         c.width = window.innerWidth;
         c.height = window.innerHeight;
         const ctx = c.getContext("2d");
-        const system = P$(ctx, size=1000);
-        system.start(fps=30);
-        
+        const system = P$(ctx, size=2500);
+        system.setEasing(0.25).start(fps=30);
+
         // setTimeout(() => {
         //     system.stop();
         // }, 3000);

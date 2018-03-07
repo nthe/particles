@@ -1,11 +1,9 @@
 
 (function(global) {
 
-
-    const EASING = 0.35;
+    // values not accessible by developer from outside
     let TOUCHX = 100;
     let TOUCHY = 100;
-
 
     /**
      *      ======
@@ -23,11 +21,15 @@
     };
 
     Vector.prototype = {
+
+        // randomize itself
         randomize: function(canvas) {
             this.x = Math.random() * (canvas ? canvas.width  / 10 : 1);
             this.y = Math.random() * (canvas ? canvas.height / 10 : 1);
             return this;
         },
+
+        // addition
         add: function(obj) {
             if (obj instanceof Vector) {
                 this.x += obj.x;
@@ -39,6 +41,8 @@
             }
             return this;
         },
+
+        // difference
         sub: function(obj) {
             if (obj instanceof Vector) {
                 this.x -= obj.x;
@@ -50,6 +54,8 @@
             }
             return this;
         },
+
+        // multiplication
         mult: function(obj) {
             if (obj instanceof Vector) {
                 this.x *= obj.x;
@@ -61,6 +67,8 @@
             }
             return this;
         },
+
+        // division
         div: function(obj) {
             if (obj instanceof Vector) {
                 this.x /= obj.x;
@@ -72,10 +80,12 @@
             }
             return this;
         },
+
+        // thanks, Pythagoras!
         distance: function(vector) {
-            return (
-                Math.abs(this.x - vector.x) +
-                Math.abs(this.y - vector.y)
+            return Math.sqrt(
+                Math.pow(this.x - vector.x, 2) +
+                Math.pow(this.y - vector.y, 2)
             );
         }
     };
@@ -104,6 +114,9 @@
     };
 
     Particle.prototype = {
+        
+        // default easing value
+        EASING: 0.35,
 
         // randomize position
         randomize: function() {
@@ -126,30 +139,35 @@
             distVector.mult(0.999);
             
             if(distance < 100) {
-                distVector.mult(1 / distance);
+                distVector.mult(0.01);
             }
             else {
                 distVector.mult(1 / Math.sqrt(distance));
             }
 
             this.direction.add(distVector.mult(0.88));
+            
+            this.mass = Math.max(1, distance / 200);
 
-            if(distance > 1) {
-                this.position.add(distVector.add(this.direction).mult(EASING));
+            if(distance > 0) {
+                this.position.add(distVector.add(this.direction).mult(this.EASING));
             }
             return this;
         },
+
         // render particle as circle, mass defined the size
         render: function() {
+            // draw an 360 def arc, filled
             this.context.beginPath();
             this.context.arc(
                 this.position.x, 
                 this.position.y, 
                 this.mass, 
                 0, 
-                2 * Math.PI
+                2 * Math.PI,
+                true
             );
-            this.context.stroke();
+            this.context.fill();
         }
     };
 
@@ -172,13 +190,15 @@
     };
     
     // function constructor
-    ParticleSystem.init = function(context, size=20, ease=0.05) {
+    ParticleSystem.init = function(context, size=20, ease=0.35) {
+
         this.context = context;
         this.size = size;
-        this.ease = ease;
         this.handle = null;
         this.system = [];
         
+        this.setEasing(ease);
+
         // create particle "cloud" or "system"
         let sx = this.size; 
         while(sx--) {
@@ -187,6 +207,7 @@
             );
         }
 
+        // listen to mousemoves for specific canvas
         this.context.canvas.onmousemove = function(event) {
             TOUCHX = event.clientX;
             TOUCHY = event.clientY;
@@ -209,6 +230,12 @@
         // change context (canvas)
         setContext: function(ctx) {
             this.context = ctx;
+            return this;
+        },
+
+        // change easing value
+        setEasing: function(value) {
+            Particle.prototype.EASING = value;
             return this;
         },
 
@@ -258,7 +285,6 @@
 
     // expose ParticleSystem to global object
     global.P$ = global.ParticleSystem = ParticleSystem;
-
 
 
 
