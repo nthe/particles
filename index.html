@@ -19,22 +19,27 @@
 
 <body>
     <canvas id="canvas"></canvas>
+    <script src="ps.system.js"></script>
 
-    <script src="main.js"></script>
     <script>
 
         const c = document.querySelector("#canvas");
         c.width = window.innerWidth;
         c.height = window.innerHeight;
         const ctx = c.getContext("2d");
-        const system = P$(ctx, size=2500);
-        system.setEasing(0.25).start(fps=30);
+        ctx.strokeStyle = "#000000";
+        ctx.fillStyle = "#00ccff";
+        const system = P$(ctx)
+            .resize(size=1000)
+            .setEasing(0.25)
+            .start(fps=30);
 
         // setTimeout(() => {
         //     system.stop();
         // }, 3000);
 
         console.log(system);
+
     </script>
 
 </body>
