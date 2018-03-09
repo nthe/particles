@@ -78,7 +78,7 @@
                 this.x -= obj;
                 this.y -= obj;
             }
-            return src;
+            return this;
         },
 
         /**
@@ -137,6 +137,12 @@
 
 
 
+
+
+
+
+
+    
     /**
      * @function Particle
      * @description wrapper for function constructor (avoiding 'new' keyword)
@@ -157,8 +163,8 @@
      */
     Particle.init = function(position, mass=1) {
         // this.context = context;
-        this.position = position || Vector().randomize();
-        this.direction = Vector().randomize(this.CONTEXT.canvas);
+        this.position = position || Vector(this.CONTEXT.canvas.width / 2, this.CONTEXT.canvas.height / 2);
+        this.direction = Vector().randomize().sub(0.5).mult(50);
         this.mass = mass;
     };
 
@@ -189,7 +195,7 @@
          * @property
          * @description reference to context
          */
-        CONTEXT: {},
+        CONTEXT: null,
 
         /**
          * @method randomize
@@ -231,17 +237,25 @@
                 this.direction.add(distVector);
             }
             
-            this.mass = Math.max(1, Math.log(distance) / 1.5);
+            this.mass = Math.max(1, Math.log(distance) / 1.75);
 
             if(distance > 0) {
                 this.position.add(distVector.add(this.direction).mult(this.EASING));
             }
 
             // constraint position to canvas
-            if (this.position.x <= 1) this.position.x = 1;
-            if (this.position.x >= this.CONTEXT.canvas.width - 1) this.position.x = this.CONTEXT.canvas.width - 1;
-            if (this.position.y <= 1) this.position.y = 1;
-            if (this.position.y >= this.CONTEXT.canvas.height - 1) this.position.y = this.CONTEXT.canvas.height - 1;
+            if (this.position.x <= 1) {
+                this.position.x = 1;
+            }
+            if (this.position.x >= this.CONTEXT.canvas.width - 1) {
+                this.position.x = this.CONTEXT.canvas.width - 1;
+            }
+            if (this.position.y <= 1) {
+                this.position.y = 1;
+            }
+            if (this.position.y >= this.CONTEXT.canvas.height - 1) {
+                this.position.y = this.CONTEXT.canvas.height - 1;
+            }
             
             return this;
         },
@@ -262,6 +276,13 @@
                 true
             );
             this.CONTEXT.fill();
+
+            // draw "beak"
+            this.CONTEXT.beginPath();
+            this.CONTEXT.moveTo(this.position.x, this.position.y);
+            let x = (this.position.x + (this.direction.x * 0.2));
+            let y = (this.position.y + (this.direction.y * 0.2));
+            this.CONTEXT.lineTo(x, y);
             this.CONTEXT.stroke();
         }
     };
@@ -274,6 +295,79 @@
 
 
 
+
+
+
+    
+    /**
+     * @function Mother
+     * @description wrapper for function constructor (avoiding 'new' keyword)
+     * @constructs Mother
+     * @param {Vector} position position on canvas
+     */
+    const Mother = function(position) {
+        return new Mother.init(position);
+    }
+
+
+    /**
+     * @description function constructor
+     * @constructs Mother
+     * @param {Vector} position position on canvas
+     */
+    Mother.init = function(position) {
+        Particle.init.call(this);
+        this.EASING = 0.05;
+        this.mass = 50;
+
+        /** 
+         * @method update
+         * @description update mother (apply forces)
+        */
+        this.update = function() {
+            const distVector = Vector(
+                this.TARGET.x - this.position.x,
+                this.TARGET.y - this.position.y
+            );
+            
+            const distance = this.position.distance(this.TARGET);
+        
+            if(distance > 0) {
+                this.position.add(distVector.mult(this.EASING));
+            }
+            return this;
+        }
+
+        /**
+         * @method render
+         * @description render particle as ellipse
+         */
+        this.render = function() {
+            // draw an 360 def arc, filled
+            this.CONTEXT.beginPath();
+            this.CONTEXT.arc(
+                this.position.x, 
+                this.position.y, 
+                this.mass, 
+                0, 
+                2 * Math.PI,
+                true
+            );
+            this.CONTEXT.stroke();
+        }
+    };
+
+    Mother.init.prototype = Particle.init.prototype;
+
+
+
+
+
+
+
+
+
+    
     /**
      * @function ParticleSystem
      * @description wrapper for function constructor (avoiding 'new' keyword)
@@ -305,6 +399,8 @@
         this.resize(size);
         this.setEasing(ease);
 
+        Particle.prototype.TARGET = Vector(context.canvas.width / 2, context.canvas.height / 2);
+
         // listen to mousemoves for specific canvas
         this.context.canvas.onmousedown = function(event) {
             Particle.prototype.TARGET = Vector(event.clientX, event.clientY);
@@ -319,6 +415,8 @@
         this.context.canvas.onmouseleave = (event) => {
             Particle.prototype.ATTRACT = false;
         };
+
+        this.mother = Mother();
     };
 
 
@@ -336,6 +434,8 @@
             while(cloudSize--) {
                 this.system[cloudSize].update().render();
             }
+
+            this.mother.update().render();
         },
 
         /**

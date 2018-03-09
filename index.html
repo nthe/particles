@@ -14,26 +14,48 @@
             position: fixed;
             cursor: pointer;
         }
+        .note-wrapper {
+            position: fixed;
+            text-align: center;
+            width: 100%;
+            bottom: 33%;
+            opacity: 1;
+            transition: 1000ms opacity ease;
+            pointer-events: none;
+        }
+        .note-wrapper.hidden {
+            opacity: 0;;
+        }
     </style>
     <title>Particle System Demo</title>
 </head>
 
 <body>
     <canvas id="canvas"></canvas>
+    <div class="note-wrapper">
+        <h3 class="note">click anywhere</h3>
+    </div>
     <script src="ps.system.js"></script>
 
     <script>
 
+        const label = document.querySelector('.note-wrapper');
+        window.onclick = function(event) {
+            if(!label.classList.contains('hidden')) {
+                label.classList.add('hidden');
+            }
+        }   
+        
         const c = document.querySelector("#canvas");
         c.width = window.innerWidth;
         c.height = window.innerHeight;
         const ctx = c.getContext("2d");
-        ctx.strokeStyle = "#000000";
+        ctx.strokeStyle = "#333";
         ctx.fillStyle = "#00ccff";
 
         const system = P$(ctx)
             .resize(size=1000)
-            .setEasing(0.25)
+            .setEasing(0.1)
             .start(fps=30);
 
         // setTimeout(() => {
