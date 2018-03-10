@@ -1,0 +1,20 @@
+{
+  "name": "particles-master",
+  "version": "1.0.0",
+  "description": "Simple particle system in pure JS and HTML5.",
+  "main": "ps.system.js",
+  "scripts": {
+    "test": "mocha ps.vector.test.js",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha ps.vector.test.js -x *.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.0.4"
+  },
+  "devDependencies": {
+    "istanbul": "^0.4.5"
+  }
+}
